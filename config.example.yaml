@@ -1,0 +1,30 @@
+nexus:
+  url: "https://nexus.example.com"
+  username: "admin"
+  password: "changeme"
+  timeout: 30
+
+rules:
+  - name: "production images"
+    regex: "^prod-.*"
+    keep: 10
+  - name: "development images"
+    regex: "^dev-.*"
+    keep: 5
+  - name: "feature branches"
+    regex: "^feature-.*"
+    keep: 3
+  - name: "all other images"
+    regex: ".*"
+    keep: 5
+
+protected_tags:
+  - "latest"
+  - "stable"
+  - "main"
+
+schedule: ""
+
+dry_run: true
+
+log_file: "deletion_log.csv"
