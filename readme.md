@@ -43,16 +43,6 @@ nano config.yaml
 ./nexus-retention-policy -config config.yaml
 ```
 
-See [QUICKSTART.md](QUICKSTART.md) for detailed instructions.
-
-## Installation
-
-See [INSTALL.md](INSTALL.md) for detailed installation instructions for:
-- Linux (systemd service)
-- Windows (Task Scheduler / Windows Service)
-- macOS (LaunchDaemon)
-- Docker / Docker Compose
-- Kubernetes
 
 ## Configuration
 
@@ -258,13 +248,6 @@ nexus-retention-policy/
 ├── EXAMPLES.md              # Configuration examples
 └── LICENSE                  # MIT License
 ```
-
-## Documentation
-
-- 📖 [Quick Start Guide](QUICKSTART.md) - Get started in 5 minutes
-- 🔧 [Installation Guide](INSTALL.md) - Detailed installation for all platforms
-- 💡 [Configuration Examples](EXAMPLES.md) - Real-world configuration scenarios
-- 📋 [API Documentation](swagger.json) - Nexus REST API reference
 
 ## Contributing
 
