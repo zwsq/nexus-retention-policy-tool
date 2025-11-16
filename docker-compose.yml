@@ -1,0 +1,10 @@
+services:
+  nexus-retention-policy:
+    build: .
+    container_name: nexus-retention-policy
+    volumes:
+      - ./config.yaml:/app/config/config.yaml:ro
+      - ./logs:/app/logs
+    restart: unless-stopped
+    environment:
+      - TZ=UTC
