@@ -35,12 +35,14 @@ go build -o nexus-retention-policy ./cmd
 cp config.example.yaml config.yaml
 nano config.yaml
 
-# 3. Test with dry run (no deletions)
-./nexus-retention-policy -config config.yaml
+# 3. Test with dry run (no deletions, default mode)
+./nexus-retention-policy --config config.yaml
 
-# 4. Run for real
-# Edit config.yaml and set dry_run: false
-./nexus-retention-policy -config config.yaml
+# 4. Test with verbose output (shows all images including unmatched)
+./nexus-retention-policy --config config.yaml --verbose
+
+# 5. Run for real (execute deletions)
+./nexus-retention-policy --config config.yaml --exec
 ```
 
 
@@ -76,9 +78,6 @@ protected_tags:
 # Use cron format for recurring jobs (e.g., "0 2 * * *" for daily at 2 AM)
 schedule: ""
 
-# Dry run mode - set to true to preview deletions without actually deleting
-dry_run: false
-
 # CSV log file path
 log_file: "deletion_log.csv"
 ```
@@ -113,7 +112,6 @@ rules:
 #### Other Settings
 - `protected_tags`: List of tags that should never be deleted
 - `schedule`: Cron expression for scheduled execution (empty = one-time)
-- `dry_run`: Preview mode without actual deletions
 - `log_file`: Path to CSV log file
 
 ### Cron Schedule Examples
@@ -134,10 +132,26 @@ schedule: "0 3 * * 1-5"
 
 ## Usage
 
+### Command Line Flags
+
+- `--config`: Path to configuration file (default: `config.yaml`)
+- `--exec`: Execute deletions (default is dry-run mode)
+- `--verbose`: Show all images including unmatched ones
+
 ### One-time Execution
 
 ```bash
-./nexus-retention-policy -config config.yaml
+# Dry run (default, no deletions)
+./nexus-retention-policy --config config.yaml
+
+# Dry run with verbose output
+./nexus-retention-policy --config config.yaml --verbose
+
+# Execute deletions
+./nexus-retention-policy --config config.yaml --exec
+
+# Execute with verbose output
+./nexus-retention-policy --config config.yaml --exec --verbose
 ```
 
 ### Scheduled Execution
@@ -145,18 +159,25 @@ schedule: "0 3 * * 1-5"
 Set the `schedule` field in `config.yaml` and run:
 
 ```bash
-./nexus-retention-policy -config config.yaml
+# Scheduled dry run
+./nexus-retention-policy --config config.yaml
+
+# Scheduled execution
+./nexus-retention-policy --config config.yaml --exec
 ```
 
 The tool will run continuously and execute at the specified intervals. Press `Ctrl+C` to stop.
 
-### Dry Run Mode
+### Output Modes
 
-Test your configuration without deleting anything:
+**Normal mode (default):**
+- Shows matched images and their retention rules
+- Shows tags being kept and deleted
+- Hides unmatched images
 
-```yaml
-dry_run: true
-```
+**Verbose mode (`--verbose`):**
+- Shows all images including unmatched ones
+- Useful for debugging rule patterns
 
 ## How It Works
 
@@ -191,12 +212,13 @@ Timestamp,Repository,Image Name,Tag,Component ID,Rule,Dry Run
 
 ## Best Practices
 
-1. **Start with Dry Run**: Always test with `dry_run: true` first
-2. **Protect Important Tags**: Add critical tags to `protected_tags`
-3. **Conservative Retention**: Start with higher `keep` values
-4. **Monitor Logs**: Review `deletion_log.csv` regularly
-5. **Backup**: Ensure you have backups before running in production
-6. **Test Regex**: Verify your regex patterns match expected images
+1. **Start with Dry Run**: Always test without `--exec` flag first
+2. **Use Verbose Mode**: Run with `--verbose` to see all images and verify rules
+3. **Protect Important Tags**: Add critical tags to `protected_tags`
+4. **Conservative Retention**: Start with higher `keep` values
+5. **Monitor Logs**: Review `deletion_log.csv` regularly
+6. **Backup**: Ensure you have backups before running with `--exec`
+7. **Test Regex**: Verify your regex patterns match expected images
 
 ## Troubleshooting
 
@@ -298,7 +320,7 @@ make lint
 A: The tool only deletes based on age and count. Use `protected_tags` to prevent deletion of critical images.
 
 **Q: Can I undo deletions?**  
-A: No, deletions are permanent. Always test with `dry_run: true` first and review the logs.
+A: No, deletions are permanent. Always test without `--exec` flag first and review the logs.
 
 **Q: Does this work with Nexus 2?**  
 A: No, this tool is designed for Nexus Repository Manager 3 only.

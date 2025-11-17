@@ -25,6 +25,4 @@ protected_tags:
 
 schedule: ""
 
-dry_run: true
-
 log_file: "deletion_log.csv"
