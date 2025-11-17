@@ -11,9 +11,11 @@ import (
 )
 
 type PolicyEngine struct {
-	client *nexus.Client
-	config *config.Config
-	logger *logger.Logger
+	client  *nexus.Client
+	config  *config.Config
+	logger  *logger.Logger
+	dryRun  bool
+	verbose bool
 }
 
 type ImageGroup struct {
@@ -21,18 +23,22 @@ type ImageGroup struct {
 	Components []nexus.Component
 }
 
-func NewPolicyEngine(client *nexus.Client, cfg *config.Config, log *logger.Logger) *PolicyEngine {
+func NewPolicyEngine(client *nexus.Client, cfg *config.Config, log *logger.Logger, dryRun bool, verbose bool) *PolicyEngine {
 	return &PolicyEngine{
-		client: client,
-		config: cfg,
-		logger: log,
+		client:  client,
+		config:  cfg,
+		logger:  log,
+		dryRun:  dryRun,
+		verbose: verbose,
 	}
 }
 
 func (p *PolicyEngine) Execute() error {
 	fmt.Println("Starting retention policy execution...")
-	if p.config.DryRun {
+	if p.dryRun {
 		fmt.Println("🔍 DRY RUN MODE - No actual deletions will be performed")
+	} else {
+		fmt.Println("⚠️  EXECUTION MODE - Deletions will be performed")
 	}
 
 	repos, err := p.client.GetDockerRepositories()
@@ -92,8 +98,7 @@ func (p *PolicyEngine) processImageGroup(repoName, imageName string, components 
 	keepCount, ruleName, matched := p.config.GetKeepCount(imageName)
 
 	if !matched {
-		// Print not matched images in dry run mode
-		if p.config.DryRun {
+		if p.verbose {
 			fmt.Printf("  ⏭️  Image: %s (no matching rule, skipping)\n", imageName)
 		}
 		return 0, 0
@@ -140,7 +145,7 @@ func (p *PolicyEngine) processImageGroup(repoName, imageName string, components 
 
 	// Delete old components
 	for _, comp := range toDelete {
-		if p.config.DryRun {
+		if p.dryRun {
 			fmt.Printf("     🗑️  Would delete %s\n", comp.Version)
 		} else {
 			fmt.Printf("     🗑️  Deleting %s\n", comp.Version)
@@ -158,7 +163,7 @@ func (p *PolicyEngine) processImageGroup(repoName, imageName string, components 
 			Tag:         comp.Version,
 			ComponentID: comp.ID,
 			Rule:        ruleName,
-			DryRun:      p.config.DryRun,
+			DryRun:      p.dryRun,
 		})
 
 		deleted++

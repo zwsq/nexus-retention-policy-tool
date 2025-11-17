@@ -13,7 +13,6 @@ type Config struct {
 	Rules         []Rule      `yaml:"rules"`
 	ProtectedTags []string    `yaml:"protected_tags"`
 	Schedule      string      `yaml:"schedule"`
-	DryRun        bool        `yaml:"dry_run"`
 	LogFile       string      `yaml:"log_file"`
 }
 

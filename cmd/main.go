@@ -18,20 +18,24 @@ import (
 
 func main() {
 	configPath := flag.String("config", "config.yaml", "Path to configuration file")
+	exec := flag.Bool("exec", false, "Execute deletions (default is dry-run mode)")
+	verbose := flag.Bool("verbose", false, "Verbose output (show all images including unmatched)")
 	flag.Parse()
 
-	if err := run(*configPath); err != nil {
+	if err := run(*configPath, *exec, *verbose); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(configPath string) error {
+func run(configPath string, exec bool, verbose bool) error {
 	// Load configuration
 	cfg, err := config.Load(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
+
+	dryRun := !exec
 
 	fmt.Println("🚀 Nexus Retention Policy Tool")
 	fmt.Println("================================")
@@ -47,7 +51,7 @@ func run(configPath string) error {
 	client := nexus.NewClient(cfg.Nexus.URL, cfg.Nexus.Username, cfg.Nexus.Password, cfg.Nexus.Timeout)
 
 	// Initialize policy engine
-	engine := retention.NewPolicyEngine(client, cfg, log)
+	engine := retention.NewPolicyEngine(client, cfg, log, dryRun, verbose)
 
 	// Check if scheduling is enabled
 	if cfg.Schedule == "" {
