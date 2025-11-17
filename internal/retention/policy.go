@@ -90,9 +90,12 @@ func (p *PolicyEngine) processImageGroup(repoName, imageName string, components 
 	}
 
 	keepCount, ruleName, matched := p.config.GetKeepCount(imageName)
-	
+
 	if !matched {
-		fmt.Printf("  ⏭️  Image: %s (no matching rule, skipping)\n", imageName)
+		// Print not matched images in dry run mode
+		if p.config.DryRun {
+			fmt.Printf("  ⏭️  Image: %s (no matching rule, skipping)\n", imageName)
+		}
 		return 0, 0
 	}
 
@@ -124,7 +127,7 @@ func (p *PolicyEngine) processImageGroup(repoName, imageName string, components 
 		toDelete = regularComps[keepCount:]
 	}
 
-	// Log kept components
+	// Log kept components (in both modes)
 	for _, comp := range protectedComps {
 		fmt.Printf("     ✓ Keeping %s (protected)\n", comp.Version)
 		kept++
@@ -149,13 +152,13 @@ func (p *PolicyEngine) processImageGroup(repoName, imageName string, components 
 
 		// Log deletion
 		p.logger.LogDeletion(logger.DeletionRecord{
-			Timestamp:  time.Now(),
-			Repository: repoName,
-			ImageName:  imageName,
-			Tag:        comp.Version,
+			Timestamp:   time.Now(),
+			Repository:  repoName,
+			ImageName:   imageName,
+			Tag:         comp.Version,
 			ComponentID: comp.ID,
-			Rule:       ruleName,
-			DryRun:     p.config.DryRun,
+			Rule:        ruleName,
+			DryRun:      p.config.DryRun,
 		})
 
 		deleted++
